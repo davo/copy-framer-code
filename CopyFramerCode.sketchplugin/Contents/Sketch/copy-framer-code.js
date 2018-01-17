@@ -61,7 +61,8 @@ var processLayerRecursively = function (layer, parent) {
 
     var name = camelize(sketchObject.name());
     name = uniqueLayerName(name);
-    framerObject.name = name;
+    framerObject.layerName = name;
+    framerObject.name = '"' + name + '"';
 
     if (layer.isArtboard) {
       framerObject.x = 0;
@@ -246,7 +247,6 @@ function textLayerCode(layer) {
 function layerCode(layer) {
 
   var framerObject = {};
-
   framerObject.width = layer.frame().width() * scale;
   framerObject.height = layer.frame().height() * scale;
 
@@ -288,13 +288,13 @@ function layerCode(layer) {
 function framerLayerProperties(object) {
   var text;
   if (object.layerType == "TextLayer") {
-    text = object.name + ' = new TextLayer\n';
+    text = object.layerName + ' = new TextLayer\n';
   } else {
-    text = object.name + ' = new Layer\n';
+    text = object.layerName + ' = new Layer\n';
   }
 
   Object.keys(object).forEach(function (key) {
-    if (key != "layerType" && key != "name") {
+    if (key != "layerType" && key != "layerName") {
       text = text + '\t' + key + ': ' + object[key] + '\n';
     }
   });
@@ -427,21 +427,21 @@ function getFontStyle(layer) {
 
 function camelize(str) {
   str = str.replace(/-/g, " ");
-  str = str.replace(/[^a-zA-Z0-9$_ ]/g, "");
+  str = str.replace(/[^a-zA-Z0-9$_. ]/g, "");
   str = str.trim();
   if (str == "") {
     str = "layer";
   } else if (firstCharIsInvalid(str)) {
     str = "layer_" + str;
   }
-  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+  return str.replace(/(?:^\.\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
     if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
     return index == 0 ? match.toLowerCase() : match.toUpperCase();
   });
 }
 
 function firstCharIsInvalid(str) {
-  return str.charAt(0).match(/[^a-z$_]/i);
+  return str.charAt(0).match(/[^a-z$_.]/i);
 }
 
 function uniqueLayerName(name){
